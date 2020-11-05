@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Name>RVT2JSON</Name>
+    <Assembly>[InstalledFolder]Rvt2Json.App.dll</Assembly>
+    <ClientId>E1EDCB6E-8104-479A-BFAC-077A5A7B37BF</ClientId>
+    <FullClassName>Rvt2Json.App.ExportCommand</FullClassName>
+    <VendorId>BIMCoder Liang</VendorId>
+    <VendorDescription>https://forums.autodesk.com/t5/user/viewprofilepage/user-id/6466644</VendorDescription>
+  </AddIn>
+</RevitAddIns>
