@@ -24,16 +24,20 @@ namespace Rvt2Json.App
         private Document doc;
         private string filename;
 
+        
         private Json4ThreeModel container;
+        //3 part of Json Parent Node
         private Dictionary<string, GeometryModel> geometries;
         private Dictionary<string, MaterialModel> materials;
         private Dictionary<string, ObjectModel> objects;
+        //Transform
         private Stack<Transform> tfStack = new Stack<Transform>();
 
-        private ObjectModel currenobject;
+        //single element
+        GeometryModel currentgeometry;
+        private string currentelemuuid;
+        private string currentmaterialuuid;
 
-        
-        
         public CustomJsonContext(Document doc, string filename)
         {
             this.doc = doc;
@@ -96,11 +100,16 @@ namespace Rvt2Json.App
                 return RenderNodeAction.Skip;
             }
 
-            //material
+            currentelemuuid = uuid;
+            if (elem.Category != null && elem.Category.Material != null)
+            {
+                var currentelemmaterialuuid = elem.Category.Material.UniqueId;
+                var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
 
+            }
 
             //object
-            currenobject = new ObjectModel()
+            var currenobject = new ObjectModel()
             {
                 uuid = uuid,
                 name = Utils.GetDescription4Element(elem),
