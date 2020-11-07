@@ -5,6 +5,8 @@ namespace Rvt2Json.App.UI.View
 {
     public partial class ConfigWnd : Window
     {
+        public bool InstanceChecked;
+        public bool TypeChecked;
         public ConfigWnd()
         {
             InitializeComponent();
@@ -23,6 +25,8 @@ namespace Rvt2Json.App.UI.View
             }
             else
             {
+                InstanceChecked = (bool)InstanceCbx.IsChecked;
+                TypeChecked = (bool)TypeCbx.IsChecked;
                 DialogResult = true;
                 Close();
             }

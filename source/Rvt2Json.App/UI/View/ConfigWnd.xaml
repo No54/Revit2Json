@@ -10,10 +10,10 @@
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" >
-                <TextBlock Text="参数：" VerticalAlignment="Center" Margin="20,0,15,0"/>
-                <CheckBox VerticalAlignment="Center" VerticalContentAlignment="Center" Content="实例" Margin="0,0,10,0"
+                <TextBlock Text="Param：" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <CheckBox VerticalAlignment="Center" VerticalContentAlignment="Center" Content="Instance" Margin="0,0,5,0"
                           Name="InstanceCbx"/>
-                <CheckBox VerticalAlignment="Center" VerticalContentAlignment="Center" Content="类型" Margin="0,0,10,0"
+                <CheckBox VerticalAlignment="Center" VerticalContentAlignment="Center" Content="Type" Margin="0,0,0,0"
                           Name="TypeCbx"/>
             </StackPanel>
         </Grid>

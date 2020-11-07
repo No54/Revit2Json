@@ -24,6 +24,9 @@ namespace Rvt2Json.App
                 wnd.ShowDialog();
                 if (wnd.DialogResult == true)
                 {
+                    var instancechecked = wnd.InstanceChecked;
+                    var typecheced = wnd.TypeChecked;
+
                     var dialog = new SaveFileDialog()
                     {
                         Filter = "Json文件(*.json)",
@@ -35,7 +38,7 @@ namespace Rvt2Json.App
                     if (result == DialogResult.OK)
                     {
                         var outputpath = dialog.FileName.ToString();
-                        var context = new CustomContext(doc, outputpath);
+                        var context = new CustomContext(doc, outputpath, isrvt, instancechecked, typecheced);
                         var exporter = new CustomExporter(doc, context)
                         {
                             ShouldStopOnError = false,
