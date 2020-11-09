@@ -6,6 +6,12 @@ using System.Windows.Forms;
 
 namespace Rvt2Json.App
 {
+    /// <summary>
+    /// Accroding to threejs R122 JSON-Object-Scene-format-4 https://github.com/mrdoob/three.js/wiki
+    /// Inspired by https://github.com/va3c/RvtVa3c
+    /// </summary>
+    [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
+    [Autodesk.Revit.Attributes.Regeneration(Autodesk.Revit.Attributes.RegenerationOption.Manual)]
     public class ExportCommand : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -29,7 +35,7 @@ namespace Rvt2Json.App
 
                     var dialog = new SaveFileDialog()
                     {
-                        Filter = "Json文件(*.json)",
+                        Filter = "Json File(*.json)|",
                         FilterIndex = 1,
                         RestoreDirectory = true,
                         FileName = $"{filename}.json"
@@ -38,7 +44,7 @@ namespace Rvt2Json.App
                     if (result == DialogResult.OK)
                     {
                         var outputpath = dialog.FileName.ToString();
-                        var context = new CustomContext(doc, outputpath, isrvt, instancechecked, typecheced);
+                        var context = new CustomJsonContext(doc, outputpath, isrvt, instancechecked, typecheced);
                         var exporter = new CustomExporter(doc, context)
                         {
                             ShouldStopOnError = false,
@@ -49,7 +55,7 @@ namespace Rvt2Json.App
             }
             else
             {
-                TaskDialog.Show("注意", "请切换至三维视图");
+                TaskDialog.Show("Warning", "Please switch to 3D View");
                 return Result.Cancelled;
             }
             return Result.Succeeded;

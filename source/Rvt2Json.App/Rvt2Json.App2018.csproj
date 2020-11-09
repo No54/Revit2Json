@@ -67,6 +67,7 @@
     <Compile Include="Models\MaterialModel.cs" />
     <Compile Include="Models\MetadataModel.cs" />
     <Compile Include="Models\ObjectModel.cs" />
+    <Compile Include="Models\PointInt.cs" />
     <Compile Include="Models\TextureModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\View\ConfigWnd.xaml.cs">

@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 
@@ -28,8 +29,11 @@ namespace Rvt2Json.App.Models
     [DataContract]
     public class AttributeModel
     {
+        [DataMember]
         public GeometryBasicModel position { get; set; }
+        [DataMember]
         public GeometryBasicModel normal { get; set; }
+        [DataMember]
         public GeometryBasicModel uv { get; set; }
     }
 
@@ -37,7 +41,7 @@ namespace Rvt2Json.App.Models
     public class IndexModel
     {
         [DataMember]
-        public double[] array { get; set; }
+        public List<int> array { get; set; }
         [DataMember]
         public string type { get; set; }
     }
@@ -50,7 +54,7 @@ namespace Rvt2Json.App.Models
         [DataMember]
         public string type { get; set; }
         [DataMember]
-        public double[] array { get; set; }
+        public List<double> array { get; set; }
         [DataMember]
         public bool normalized { get; set; }
     }
