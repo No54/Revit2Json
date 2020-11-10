@@ -153,5 +153,37 @@ namespace Rvt2Json.App
             }
             return userdata;
         }
+
+        public static bool HasSolid(Element element)
+        {
+            if (null == element)
+                return false;
+
+            var opt = new Options() { DetailLevel = ViewDetailLevel.Fine };
+            var ge = element.get_Geometry(opt);
+            return HasSolid(ge);
+        }
+
+        public static bool HasSolid(GeometryElement ge)
+        {
+            if (null == ge)
+                return false;
+            foreach (var go in ge)
+            {
+                if (go is Solid)
+                {
+                    Solid sd = go as Solid;
+                    if (null != sd.Faces && sd.Faces.Size >= 1 || sd.Volume >= 0.0f)
+                        return true;
+                }
+                else if (go is GeometryInstance)
+                {
+                    GeometryInstance geSub = go as GeometryInstance;
+                    if (HasSolid(geSub.GetInstanceGeometry()))
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 }

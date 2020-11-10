@@ -122,23 +122,32 @@ namespace Rvt2Json.App
         {
             var elem = doc.GetElement(elementId);
             string uuid = elem.UniqueId;
-            if (objects.ContainsKey(uuid) || elem.Category == null)
+            if (objects.ContainsKey(uuid) || 
+                elem.Category == null || 
+                !Utils.HasSolid(elem) ||
+                elem is ElementType)
             {
                 return RenderNodeAction.Skip;
             }
+
+            var currentelemmaterialuuid = string.Empty;
             if (elem.Category != null && elem.Category.Material != null)
             {
-                var currentelemmaterialuuid = elem.Category.Material.UniqueId;
-                var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
-
-                //object
-                currentobject = new ObjectModel()
-                {
-                    uuid = uuid,
-                    name = Utils.GetDescription4Element(elem),
-                    type = "RevitElement",
-                    matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                    children = new List<ObjectModel>()
+                currentelemmaterialuuid = elem.Category.Material.UniqueId;
+            }
+            else
+            {
+                currentelemmaterialuuid = Guid.NewGuid().ToString();
+            }
+            var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
+            //object
+            currentobject = new ObjectModel()
+            {
+                uuid = uuid,
+                name = Utils.GetDescription4Element(elem),
+                type = "RevitElement",
+                matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+                children = new List<ObjectModel>()
                     {
                         new ObjectModel(){
                                 uuid = elem_per_material,
@@ -149,9 +158,11 @@ namespace Rvt2Json.App
                                 material = currentelemmaterialuuid,
                             }
                     },
-                    userData = Utils.GetUserData(isrvt, instancechecked, typechecked, elem),
-                };
-                objects.Add(currentelemmaterialuuid, currentobject);
+                userData = Utils.GetUserData(isrvt, instancechecked, typechecked, elem),
+            };
+            if (!objects.ContainsKey(uuid))
+            {
+                objects.Add(uuid, currentobject);
             }
             return RenderNodeAction.Proceed;
         }
@@ -170,28 +181,29 @@ namespace Rvt2Json.App
         public void OnMaterial(MaterialNode node)
         {
             var mid = node.MaterialId;
+            var muid = string.Empty;
             if (ElementId.InvalidElementId != mid)
             {
                 var m = doc.GetElement(node.MaterialId) as Material;
                 if (m != null)
                 {
-                    var muid = m.UniqueId;
+                    muid = m.UniqueId;
+                    var materialmodel = new MaterialModel()
+                    {
+                        uuid = muid,
+                        name = m.Name,
+                        type = "MeshPhongMaterial",
+                        color = Utils.ColorToInt(m.Color),
+                        ambient = Utils.ColorToInt(m.Color),
+                        emissive = 0,
+                        specular = Utils.ColorToInt(m.Color),
+                        shininess = 1,
+                        opacity = 0.01 * (double)(100 - m.Transparency),
+                        transparent = 0 < m.Transparency,
+                        wireframe = false
+                    };
                     if (!materials.ContainsKey(muid))
                     {
-                        var materialmodel = new MaterialModel()
-                        {
-                            uuid = muid,
-                            name = m.Name,
-                            type = "MeshPhongMaterial",
-                            color = Utils.ColorToInt(m.Color),
-                            ambient = Utils.ColorToInt(m.Color),
-                            emissive = 0,
-                            specular = Utils.ColorToInt(m.Color),
-                            shininess = 1,
-                            opacity = 0.01 * (double)(100 - m.Transparency),
-                            transparent = 0 < m.Transparency,
-                            wireframe = false
-                        };
                         materials.Add(muid, materialmodel);
                     }
                 }
@@ -252,64 +264,67 @@ namespace Rvt2Json.App
 
             List<XYZ> xyzlist;
             List<int> indexlist;
-            var uuid = currentobject.children.FirstOrDefault().uuid;
-            if (XYZs.ContainsKey(uuid))
+            if (currentobject != null)
             {
-                xyzlist = XYZs[uuid];
-                indexlist = Indexs[uuid];
-            }
-            else
-            {
-                xyzlist = new List<XYZ>();
-                XYZs.Add(uuid, xyzlist);
-                indexlist = new List<int>();
-                Indexs.Add(uuid, indexlist);
-            }
-            foreach (PolymeshFacet facet in node.GetFacets())
-            {
-                var v1 = facet.V1;
-                var pv1 = pts[v1];
-                var matcheditem = xyzlist.FirstOrDefault(x => x.IsAlmostEqualTo(pv1));
-                if (matcheditem != null)
+                var uuid = currentobject.children.FirstOrDefault().uuid;
+                if (XYZs.ContainsKey(uuid))
                 {
-                    indexlist.Add(xyzlist.IndexOf(matcheditem));
+                    xyzlist = XYZs[uuid];
+                    indexlist = Indexs[uuid];
                 }
                 else
                 {
-                    xyzlist.Add(pv1);
-                    indexlist.Add(xyzlist.Count - 1);
+                    xyzlist = new List<XYZ>();
+                    XYZs.Add(uuid, xyzlist);
+                    indexlist = new List<int>();
+                    Indexs.Add(uuid, indexlist);
                 }
+                foreach (PolymeshFacet facet in node.GetFacets())
+                {
+                    var v1 = facet.V1;
+                    var pv1 = pts[v1];
+                    var matcheditem = xyzlist.FirstOrDefault(x => x.IsAlmostEqualTo(pv1));
+                    if (matcheditem != null)
+                    {
+                        indexlist.Add(xyzlist.IndexOf(matcheditem));
+                    }
+                    else
+                    {
+                        xyzlist.Add(pv1);
+                        indexlist.Add(xyzlist.Count - 1);
+                    }
 
 
-                var v2 = facet.V2;
-                var pv2 = pts[v2];
-                matcheditem = xyzlist.FirstOrDefault(x => x.IsAlmostEqualTo(pv2));
-                if (matcheditem != null)
-                {
-                    indexlist.Add(xyzlist.IndexOf(matcheditem));
-                }
-                else
-                {
-                    xyzlist.Add(pv2);
-                    indexlist.Add(xyzlist.Count - 1);
+                    var v2 = facet.V2;
+                    var pv2 = pts[v2];
+                    matcheditem = xyzlist.FirstOrDefault(x => x.IsAlmostEqualTo(pv2));
+                    if (matcheditem != null)
+                    {
+                        indexlist.Add(xyzlist.IndexOf(matcheditem));
+                    }
+                    else
+                    {
+                        xyzlist.Add(pv2);
+                        indexlist.Add(xyzlist.Count - 1);
+                    }
+
+                    var v3 = facet.V3;
+                    var pv3 = pts[v3];
+                    matcheditem = xyzlist.FirstOrDefault(x => x.IsAlmostEqualTo(pv3));
+                    if (matcheditem != null)
+                    {
+                        indexlist.Add(xyzlist.IndexOf(matcheditem));
+                    }
+                    else
+                    {
+                        xyzlist.Add(pv3);
+                        indexlist.Add(xyzlist.Count - 1);
+                    }
                 }
 
-                var v3 = facet.V3;
-                var pv3 = pts[v3];
-                matcheditem = xyzlist.FirstOrDefault(x => x.IsAlmostEqualTo(pv3));
-                if (matcheditem != null)
-                {
-                    indexlist.Add(xyzlist.IndexOf(matcheditem));
-                }
-                else
-                {
-                    xyzlist.Add(pv3);
-                    indexlist.Add(xyzlist.Count - 1);
-                }
+                XYZs[uuid] = xyzlist;
+                Indexs[uuid] = indexlist;
             }
-
-            XYZs[uuid] = xyzlist;
-            Indexs[uuid] = indexlist;
         }
 
         // <summary>
@@ -330,7 +345,10 @@ namespace Rvt2Json.App
 
             var elem = doc.GetElement(elementId);
             string uuid = elem.UniqueId;
-            if (elem.Category != null && elem.Category.Material != null)
+            if (elem.Category != null && 
+                elem.Category.Material != null && 
+                Utils.HasSolid(elem) &&
+                !(elem is ElementType))
             {
                 var currentelemmaterialuuid = elem.Category.Material.UniqueId;
                 var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";

@@ -19,17 +19,10 @@ namespace Rvt2Json.App.UI.View
 
         private void OnConfirm(object sender, RoutedEventArgs e)
         {
-            if (!(bool)InstanceCbx.IsChecked && !(bool)TypeCbx.IsChecked)
-            {
-                TaskDialog.Show("Warning", "Select Instance,Type");
-            }
-            else
-            {
-                InstanceChecked = (bool)InstanceCbx.IsChecked;
-                TypeChecked = (bool)TypeCbx.IsChecked;
-                DialogResult = true;
-                Close();
-            }
+            InstanceChecked = (bool)InstanceCbx.IsChecked;
+            TypeChecked = (bool)TypeCbx.IsChecked;
+            DialogResult = true;
+            Close();
         }
     }
 }
