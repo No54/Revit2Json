@@ -46,6 +46,8 @@ namespace Rvt2Json.App
         private bool instancechecked;
         private bool typechecked;
 
+        private string orignmaterialuuid = "18A30FF6-A3E4-4424-9E9E-01FD832753A2";
+
         private Json4ThreeModel container;
         //3 part of Json Parent Node
         private Dictionary<string, GeometryModel> geometries;
@@ -137,7 +139,26 @@ namespace Rvt2Json.App
             }
             else
             {
-                currentelemmaterialuuid = Guid.NewGuid().ToString();
+                currentelemmaterialuuid = orignmaterialuuid;
+                var origncolor = new Color(128, 128, 128);
+                var materialmodel = new MaterialModel()
+                {
+                    uuid = currentelemmaterialuuid,
+                    name = "Origin Material",
+                    type = "MeshPhongMaterial",
+                    color = Utils.ColorToInt(origncolor),
+                    ambient = Utils.ColorToInt(origncolor),
+                    emissive = 0,
+                    specular = Utils.ColorToInt(origncolor),
+                    shininess = 1,
+                    opacity = 1,
+                    transparent = false,
+                    wireframe = false
+                };
+                if (!materials.ContainsKey(currentelemmaterialuuid))
+                {
+                    materials.Add(currentelemmaterialuuid, materialmodel);
+                }
             }
             var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
             //object
@@ -158,8 +179,11 @@ namespace Rvt2Json.App
                                 material = currentelemmaterialuuid,
                             }
                     },
-                userData = Utils.GetUserData(isrvt, instancechecked, typechecked, elem),
             };
+            if (instancechecked || typechecked)
+            {
+                currentobject.userData = Utils.GetUserData(isrvt, instancechecked, typechecked, elem);
+            }
             if (!objects.ContainsKey(uuid))
             {
                 objects.Add(uuid, currentobject);
