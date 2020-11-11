@@ -124,12 +124,15 @@ namespace Rvt2Json.App
         {
             var elem = doc.GetElement(elementId);
             string uuid = elem.UniqueId;
-            if (objects.ContainsKey(uuid) || 
-                elem.Category == null || 
-                !Utils.HasSolid(elem) ||
-                elem is ElementType)
+            if (objects.ContainsKey(uuid))
             {
-                return RenderNodeAction.Skip;
+                if (isrvt)
+                {
+                    if (elem.Category == null ||!Utils.HasSolid(elem) ||elem is ElementType)
+                    {
+                        return RenderNodeAction.Skip;
+                    }
+                }
             }
 
             var currentelemmaterialuuid = string.Empty;
@@ -165,14 +168,14 @@ namespace Rvt2Json.App
             currentobject = new ObjectModel()
             {
                 uuid = uuid,
-                name = Utils.GetDescription4Element(elem),
+                name = Utils.GetDescription4Element(elem,isrvt),
                 type = "RevitElement",
                 matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                 children = new List<ObjectModel>()
                     {
                         new ObjectModel(){
                                 uuid = elem_per_material,
-                                name = Utils.GetDescription4Element(elem),
+                                name = Utils.GetDescription4Element(elem,isrvt),
                                 type = "Mesh",
                                 matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                                 geometry = elem_per_material,
@@ -369,59 +372,71 @@ namespace Rvt2Json.App
 
             var elem = doc.GetElement(elementId);
             string uuid = elem.UniqueId;
-            if (elem.Category != null && 
-                elem.Category.Material != null && 
-                Utils.HasSolid(elem) &&
-                !(elem is ElementType))
+            if (objects.ContainsKey(uuid))
             {
-                var currentelemmaterialuuid = elem.Category.Material.UniqueId;
-                var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
-
-                if (XYZs.ContainsKey(elem_per_material))
+                if (isrvt)
                 {
-                    var positionarray = new List<double>();
-                    var xyzlist = XYZs[elem_per_material];
-                    foreach (var xyz in xyzlist)
+                    if (elem.Category == null || !Utils.HasSolid(elem) || elem is ElementType)
                     {
-                        var p = new PointInt(xyz, switch_coordinates);
-                        positionarray.Add(scale_vertex * p.X);
-                        positionarray.Add(scale_vertex * p.Y);
-                        positionarray.Add(scale_vertex * p.Z);
+                        return;
                     }
+                }
+            }
 
-                    var indexlist = Indexs[elem_per_material];
+            var currentelemmaterialuuid = string.Empty;
+            if (elem.Category != null && elem.Category.Material != null)
+            {
+                currentelemmaterialuuid = elem.Category.Material.UniqueId;
+            }
+            else
+            {
+                currentelemmaterialuuid = orignmaterialuuid;
+            }
+            var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
+            if (XYZs.ContainsKey(elem_per_material))
+            {
+                var positionarray = new List<double>();
+                var xyzlist = XYZs[elem_per_material];
+                foreach (var xyz in xyzlist)
+                {
+                    var p = new PointInt(xyz, switch_coordinates);
+                    positionarray.Add(scale_vertex * p.X);
+                    positionarray.Add(scale_vertex * p.Y);
+                    positionarray.Add(scale_vertex * p.Z);
+                }
 
-                    var currentgeometry = new GeometryModel()
+                var indexlist = Indexs[elem_per_material];
+
+                var currentgeometry = new GeometryModel()
+                {
+                    uuid = currentobject.children.FirstOrDefault().uuid,
+                    type = "BufferGeometry",
+                };
+                var geometrydata = new GeometryDataModel()
+                {
+                    attributes = new AttributeModel()
                     {
-                        uuid = currentobject.children.FirstOrDefault().uuid,
-                        type = "BufferGeometry",
-                    };
-                    var geometrydata = new GeometryDataModel()
-                    {
-                        attributes = new AttributeModel()
+                        position = new GeometryBasicModel()
                         {
-                            position = new GeometryBasicModel()
-                            {
-                                itemSize = 3,
-                                type = "Float32Array",
-                                array = positionarray,
-                                normalized = false,
-                            },
+                            itemSize = 3,
+                            type = "Float32Array",
+                            array = positionarray,
+                            normalized = false,
                         },
-                        index = new IndexModel()
-                        {
-                            array = indexlist,
-                            type = "Uint16Array",
-                        },
-                    };
-
-                    currentgeometry.data = geometrydata;
-
-                    var muid = currentobject.children.FirstOrDefault().material;
-                    if (!geometries.ContainsKey(muid))
+                    },
+                    index = new IndexModel()
                     {
-                        geometries.Add(muid, currentgeometry);
-                    }
+                        array = indexlist,
+                        type = "Uint16Array",
+                    },
+                };
+
+                currentgeometry.data = geometrydata;
+
+                var muid = currentobject.children.FirstOrDefault().material;
+                if (!geometries.ContainsKey(muid))
+                {
+                    geometries.Add(muid, currentgeometry);
                 }
             }
         }

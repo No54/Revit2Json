@@ -6,23 +6,30 @@ namespace Rvt2Json.App
 {
     public static class Utils
     {
-        public static string GetDescription4Element(Element elem)
+        public static string GetDescription4Element(Element elem, bool isrvt)
         {
             var result = "<null>";
             if (elem != null)
             {
-                var category = elem.Category.Name;
-                var typename = string.Empty;
-                var typeid = elem.GetTypeId();
-                if (typeid != ElementId.InvalidElementId)
+                if (isrvt)
                 {
-                    var elemtype = elem.Document.GetElement(typeid);
-                    if (elemtype != null)
+                    var category = elem.Category.Name;
+                    var typename = string.Empty;
+                    var typeid = elem.GetTypeId();
+                    if (typeid != ElementId.InvalidElementId)
                     {
-                        typename = elemtype.Name;
+                        var elemtype = elem.Document.GetElement(typeid);
+                        if (elemtype != null)
+                        {
+                            typename = elemtype.Name;
+                        }
                     }
+                    result = $"{category.Trim()} {typename.Trim()} {elem.Name.Trim()}({elem.Id.IntegerValue})";
                 }
-                result = $"{category.Trim()} {typename.Trim()} {elem.Name.Trim()}({elem.Id.IntegerValue})";
+                else
+                {
+                    result = $"{elem.Name.Trim()}";
+                }
             }
             return result;
         }
@@ -146,6 +153,45 @@ namespace Rvt2Json.App
                                 {
                                     userdata.Add(key, val);
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var result = new List<FamilyParameter>();
+                var mgr = elem.Document.FamilyManager;
+                var familytypes = mgr.Types;
+                var plist = mgr.Parameters;
+                foreach (FamilyType t in familytypes)
+                {
+                    foreach (FamilyParameter p in plist)
+                    {
+                        if (instancechecked && !typechecked)
+                        {
+                            if (!p.IsInstance) continue;
+                        }
+                        if (!instancechecked && typechecked)
+                        {
+                            if (p.IsInstance) continue;
+                        }
+                        if (result.FirstOrDefault(x => x.Definition.Name == p.Definition.Name) == null)
+                        {
+                            result.Add(p);
+                            var key = p.IsInstance?$"{t.Name}-{p.Definition.Name}": $"{t.Name}-Type {p.Definition.Name}";
+                            string val;
+                            if (StorageType.String == p.StorageType)
+                            {
+                                val = t.AsString(p);
+                            }
+                            else
+                            {
+                                val = t.AsValueString(p);
+                            }
+                            if (!string.IsNullOrEmpty(val))
+                            {
+                                userdata.Add(key, val);
                             }
                         }
                     }
