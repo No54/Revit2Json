@@ -60,6 +60,7 @@ namespace Rvt2Json.App
         //Cache
         private Dictionary<string, List<XYZ>> XYZs;
         private Dictionary<string, List<int>> Indexs;
+        private Dictionary<string, ObjectModel> cacheobjects;
 
         public CustomJsonContext(Document doc, string filename, bool isrvt, bool instancechecked, bool typechecked)
         {
@@ -80,6 +81,7 @@ namespace Rvt2Json.App
 
             XYZs = new Dictionary<string, List<XYZ>>();
             Indexs = new Dictionary<string, List<int>>();
+            cacheobjects = new Dictionary<string, ObjectModel>();
 
             tfStack.Push(Transform.Identity);
 
@@ -124,17 +126,6 @@ namespace Rvt2Json.App
         {
             var elem = doc.GetElement(elementId);
             string uuid = elem.UniqueId;
-            if (objects.ContainsKey(uuid))
-            {
-                if (isrvt)
-                {
-                    if (elem.Category == null ||!Utils.HasSolid(elem) ||elem is ElementType)
-                    {
-                        return RenderNodeAction.Skip;
-                    }
-                }
-            }
-
             var currentelemmaterialuuid = string.Empty;
             if (elem.Category != null && elem.Category.Material != null)
             {
@@ -143,6 +134,23 @@ namespace Rvt2Json.App
             else
             {
                 currentelemmaterialuuid = orignmaterialuuid;
+            }
+            var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
+
+            if (isrvt)
+            {
+                if (elem.Category == null || !Utils.HasSolid(elem) || elem is ElementType)
+                {
+                    return RenderNodeAction.Skip;
+                }
+            }
+            else
+            {
+
+            }
+
+            if (!materials.ContainsKey(currentelemmaterialuuid))
+            {
                 var origncolor = new Color(128, 128, 128);
                 var materialmodel = new MaterialModel()
                 {
@@ -158,20 +166,18 @@ namespace Rvt2Json.App
                     transparent = false,
                     wireframe = false
                 };
-                if (!materials.ContainsKey(currentelemmaterialuuid))
-                {
-                    materials.Add(currentelemmaterialuuid, materialmodel);
-                }
+                materials.Add(currentelemmaterialuuid, materialmodel);
             }
-            var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
-            //object
-            currentobject = new ObjectModel()
+
+            if (!cacheobjects.ContainsKey(elem_per_material))
             {
-                uuid = uuid,
-                name = Utils.GetDescription4Element(elem,isrvt),
-                type = "RevitElement",
-                matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
-                children = new List<ObjectModel>()
+                currentobject = new ObjectModel()
+                {
+                    uuid = uuid,
+                    name = Utils.GetDescription4Element(elem, isrvt),
+                    type = "RevitElement",
+                    matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
+                    children = new List<ObjectModel>()
                     {
                         new ObjectModel(){
                                 uuid = elem_per_material,
@@ -182,14 +188,12 @@ namespace Rvt2Json.App
                                 material = currentelemmaterialuuid,
                             }
                     },
-            };
-            if (instancechecked || typechecked)
-            {
-                currentobject.userData = Utils.GetUserData(isrvt, instancechecked, typechecked, elem);
-            }
-            if (!objects.ContainsKey(uuid))
-            {
-                objects.Add(uuid, currentobject);
+                };
+                if (instancechecked || typechecked)
+                {
+                    currentobject.userData = Utils.GetUserData(isrvt, instancechecked, typechecked, elem);
+                }
+                cacheobjects.Add(elem_per_material, currentobject);
             }
             return RenderNodeAction.Proceed;
         }
@@ -369,20 +373,8 @@ namespace Rvt2Json.App
 
         public void OnElementEnd(ElementId elementId)
         {
-
             var elem = doc.GetElement(elementId);
             string uuid = elem.UniqueId;
-            if (objects.ContainsKey(uuid))
-            {
-                if (isrvt)
-                {
-                    if (elem.Category == null || !Utils.HasSolid(elem) || elem is ElementType)
-                    {
-                        return;
-                    }
-                }
-            }
-
             var currentelemmaterialuuid = string.Empty;
             if (elem.Category != null && elem.Category.Material != null)
             {
@@ -393,6 +385,15 @@ namespace Rvt2Json.App
                 currentelemmaterialuuid = orignmaterialuuid;
             }
             var elem_per_material = $"{uuid}-{currentelemmaterialuuid}";
+
+            if (isrvt)
+            {
+                if (elem.Category == null || !Utils.HasSolid(elem) || elem is ElementType)
+                {
+                    return;
+                }
+            }
+
             if (XYZs.ContainsKey(elem_per_material))
             {
                 var positionarray = new List<double>();
@@ -434,10 +435,16 @@ namespace Rvt2Json.App
                 currentgeometry.data = geometrydata;
 
                 var muid = currentobject.children.FirstOrDefault().material;
-                if (!geometries.ContainsKey(muid))
+                if (!geometries.ContainsKey(elem_per_material))
                 {
-                    geometries.Add(muid, currentgeometry);
+                    geometries.Add(elem_per_material, currentgeometry);
                 }
+            }
+            if (geometries.ContainsKey(elem_per_material) && 
+                cacheobjects.ContainsKey(elem_per_material) &&
+                !objects.ContainsKey(elem_per_material))
+            {
+                objects.Add(elem_per_material, cacheobjects[elem_per_material]);
             }
         }
 
