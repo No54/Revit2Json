@@ -179,8 +179,9 @@ namespace Rvt2Json.App
                         if (result.FirstOrDefault(x => x.Definition.Name == p.Definition.Name) == null)
                         {
                             result.Add(p);
-                            var key = p.IsInstance?$"{t.Name}-{p.Definition.Name}": $"{t.Name}-Type {p.Definition.Name}";
-                            string val;
+                            var prename = !string.IsNullOrEmpty(t.Name) && !string.IsNullOrWhiteSpace(t.Name) ? $"{t.Name}-":"";
+                            var key = p.IsInstance?$"{prename}{p.Definition.Name}": $"{prename}Type {p.Definition.Name}";
+                            var val = "";
                             if (StorageType.String == p.StorageType)
                             {
                                 val = t.AsString(p);
@@ -189,10 +190,7 @@ namespace Rvt2Json.App
                             {
                                 val = t.AsValueString(p);
                             }
-                            if (!string.IsNullOrEmpty(val))
-                            {
-                                userdata.Add(key, val);
-                            }
+                            userdata.Add(key, val);
                         }
                     }
                 }

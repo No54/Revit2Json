@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using Rvt2Json.App.Model;
 using Rvt2Json.App.Models;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -175,7 +174,7 @@ namespace Rvt2Json.App
                 {
                     uuid = uuid,
                     name = Utils.GetDescription4Element(elem, isrvt),
-                    type = "RevitElement",
+                    type = isrvt?"RevitElement":"RfaElement",
                     matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                     children = new List<ObjectModel>()
                     {
@@ -189,7 +188,7 @@ namespace Rvt2Json.App
                             }
                     },
                 };
-                if (instancechecked || typechecked)
+                if (isrvt && (instancechecked || typechecked))
                 {
                     currentobject.userData = Utils.GetUserData(isrvt, instancechecked, typechecked, elem);
                 }
@@ -487,6 +486,18 @@ namespace Rvt2Json.App
         /// </summary>
         public void Finish()
         {
+            if (!isrvt)
+            {
+                if (instancechecked || typechecked)
+                {
+                    var defaultelem = doc.GetElement(objects.Values.FirstOrDefault().uuid);
+                    if (defaultelem != null)
+                    {
+                        container.obj.userData = Utils.GetUserData(isrvt, instancechecked, typechecked, defaultelem);
+                    }
+                }
+            }
+
             container.geometries = geometries.Values.ToList();
             container.materials = materials.Values.ToList();
             container.obj.children = objects.Values.ToList();
