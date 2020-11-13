@@ -133,7 +133,11 @@ namespace Rvt2Json.App
             }
             else
             {
-
+                if (elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Cameras ||
+                    elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Lines)
+                {
+                    return RenderNodeAction.Skip;
+                }
             }
 
             currentobject = new ObjectModel()
