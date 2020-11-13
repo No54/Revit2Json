@@ -41,10 +41,10 @@ namespace Rvt2Json.App
         readonly bool switch_coordinates = true;
 
         private Document doc;
-        private string filename;
-        private bool isrvt;
-        private bool instancechecked;
-        private bool typechecked;
+        private readonly string filename;
+        private readonly bool isrvt;
+        private readonly bool instancechecked;
+        private readonly bool typechecked;
 
         private Json4ThreeModel container;
         //3 part of Json Parent Node
