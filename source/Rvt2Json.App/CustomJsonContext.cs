@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using Rvt2Json.App.Model;
 using Rvt2Json.App.Models;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
