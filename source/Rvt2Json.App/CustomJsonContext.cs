@@ -414,7 +414,7 @@ namespace Rvt2Json.App
                     type = "Mesh",
                     matrix = new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 },
                     geometry = elem_per_material,
-                    material = elem_per_material.Substring(36),
+                    material = materials.Values.Select(x => x.uuid).FirstOrDefault(x => elem_per_material.Contains(x))
                 };
                 children.Add(objectmodel);
             }
