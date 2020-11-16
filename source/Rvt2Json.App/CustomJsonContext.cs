@@ -489,7 +489,7 @@ namespace Rvt2Json.App
             var setting = new JsonSerializerSettings()
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                Formatting = Formatting.Indented,
+                Formatting = Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore
             };
             var result = JsonConvert.SerializeObject(container, setting);
