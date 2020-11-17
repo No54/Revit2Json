@@ -1,47 +1,104 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title></title>
-	</head>
-	<body>
-		<div class="webgl-container" id="webglContainer"></div>
-		<script src="/threejs/three.js-master/build/three.js"> </script>
-		<script src="/threejs/three.js-master/examples/js/controls/TrackballControls.js"></script>
-		<script>
-			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 4, 40000);
-			var renderer = new THREE.WebGLRenderer();
 
-			var ambientLight = new THREE.AmbientLight(0xffffff, 1);
-			camera.add(ambientLight);
-			scene.add(camera);
-			
-			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.setClearColor(0xfff6ff);
-			document.getElementById('webglContainer').appendChild(renderer.domElement);
+<head>
+	<meta charset="utf-8">
+	<title>bim.frankliang threejs viewer</title>
+	<style>
+		#container {
+			width: 100%;
+			height: 100%;
+			visibility: visible;
+		}
+	</style>
+</head>
 
-			var objectLoader = new THREE.ObjectLoader();
+<body background style="margin:0px">
+	<script src="/threejs/three.js-master/build/three.js"> </script>
+	<script src="/threejs/three.js-master/examples/js/controls/TrackballControls.js"></script>
 
-			objectLoader.load("wall.json", function(obj) {
-				scene.add(obj);
-				let center, boundingbox = new THREE.Box3();
-				boundingbox.expandByObject(obj);
-				center = boundingbox.getCenter();
-				camera.position.set(center.x, center.y, center.z + 30000);
-				console.log(scene);
+	<div id="container"></div>
+
+	<script>
+		let scene, camera, renderer, controls;
+
+		function InitScene() {
+			scene = new THREE.Scene();
+		}
+
+
+		function InitCamera() {
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 40000);
+		}
+
+
+		function InitRenderer() {
+			renderer = new THREE.WebGLRenderer({
+				antialias: true,
+				alpha: true,
+				precision: 'highp',
 			});
+			renderer.setClearColor(0xf1f1f1);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.getElementById('container').appendChild(renderer.domElement);
+		}
 
-			var controls;
+		let ambientLight;
+		// let directionalLight;
+		function InitLight() {
+			ambientLight = new THREE.AmbientLight(0xfffff, 1);
+			scene.add(ambientLight);
+		}
+
+
+		function LoadModel() {
+
+			var loader = new THREE.ObjectLoader();
+			loader.load("wall.json", function (obj) {
+				scene.add(obj);
+				var boundingbox = new THREE.Box3();
+				boundingbox.expandByObject(obj);
+				var center = boundingbox.getCenter();
+				camera.position.set(center.x, center.y, center.z + 30000);
+			});
+		}
+
+		function InitControls() {
+
 			controls = new THREE.TrackballControls(camera, renderer.domElement);
+		}
 
-			var animate = function() {
-				requestAnimationFrame(animate);
-				renderer.render(scene, camera);
-				controls.update();
-			};
 
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+		}
+
+		function animate() {
+			requestAnimationFrame(animate);
+			renderer.render(scene, camera);
+			controls.update();
+		};
+
+		function Init() {
+
+			InitScene();
+			InitCamera();
+			InitRenderer();
+			InitLight();
+			InitControls();
+			LoadModel();
+
+			window.addEventListener('resize', onWindowResize, false);
+		}
+
+		(function () {
+			Init();
 			animate();
-		</script>
-	</body>
+		})();
+
+	</script>
+</body>
+
 </html>
