@@ -6,23 +6,30 @@ namespace Rvt2Json.App
 {
     public static class Utils
     {
-        public static string GetDescription4Element(Element elem)
+        public static string GetDescription4Element(Element elem, bool isrvt)
         {
             var result = "<null>";
             if (elem != null)
             {
-                var category = elem.Category.Name;
-                var typename = string.Empty;
-                var typeid = elem.GetTypeId();
-                if (typeid != ElementId.InvalidElementId)
+                if (isrvt)
                 {
-                    var elemtype = elem.Document.GetElement(typeid);
-                    if (elemtype != null)
+                    var category = elem.Category.Name;
+                    var typename = string.Empty;
+                    var typeid = elem.GetTypeId();
+                    if (typeid != ElementId.InvalidElementId)
                     {
-                        typename = elemtype.Name;
+                        var elemtype = elem.Document.GetElement(typeid);
+                        if (elemtype != null)
+                        {
+                            typename = elemtype.Name;
+                        }
                     }
+                    result = $"{category.Trim()} {typename.Trim()} {elem.Name.Trim()}({elem.Id.IntegerValue})";
                 }
-                result = $"{category.Trim()} {typename.Trim()} {elem.Name.Trim()}({elem.Id.IntegerValue})";
+                else
+                {
+                    result = $"{elem.Name.Trim()}";
+                }
             }
             return result;
         }
@@ -151,7 +158,76 @@ namespace Rvt2Json.App
                     }
                 }
             }
+            else
+            {
+                var result = new List<FamilyParameter>();
+                var mgr = elem.Document.FamilyManager;
+                var familytypes = mgr.Types;
+                var plist = mgr.Parameters;
+                foreach (FamilyType t in familytypes)
+                {
+                    foreach (FamilyParameter p in plist)
+                    {
+                        if (instancechecked && !typechecked)
+                        {
+                            if (!p.IsInstance) continue;
+                        }
+                        if (!instancechecked && typechecked)
+                        {
+                            if (p.IsInstance) continue;
+                        }
+                        if (result.FirstOrDefault(x => x.Definition.Name == p.Definition.Name) == null)
+                        {
+                            result.Add(p);
+                            var prename = !string.IsNullOrEmpty(t.Name) && !string.IsNullOrWhiteSpace(t.Name) ? $"{t.Name}-":"";
+                            var key = p.IsInstance?$"{prename}{p.Definition.Name}": $"{prename}Type {p.Definition.Name}";
+                            var val = "";
+                            if (StorageType.String == p.StorageType)
+                            {
+                                val = t.AsString(p);
+                            }
+                            else
+                            {
+                                val = t.AsValueString(p);
+                            }
+                            userdata.Add(key, val);
+                        }
+                    }
+                }
+            }
             return userdata;
+        }
+
+        public static bool HasSolid(Element element)
+        {
+            if (null == element)
+                return false;
+
+            var opt = new Options() { DetailLevel = ViewDetailLevel.Fine };
+            var ge = element.get_Geometry(opt);
+            return HasSolid(ge);
+        }
+
+        public static bool HasSolid(GeometryElement ge)
+        {
+            if (null == ge)
+                return false;
+            foreach (var go in ge)
+            {
+                if (go is Solid)
+                {
+                    Solid sd = go as Solid;
+                    if (null != sd.Faces && sd.Faces.Size >= 1 || sd.Volume >= 0.0f)
+                        return true;
+                }
+                else if (go is GeometryInstance)
+                {
+                    GeometryInstance geSub = go as GeometryInstance;
+                    if (HasSolid(geSub.GetInstanceGeometry()))
+                        return true;
+                }
+            }
+            return false;
         }
     }
 }

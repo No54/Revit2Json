@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>bim.frankliang threejs viewer</title>
+	<style>
+		#container {
+			width: 100%;
+			height: 100%;
+			visibility: visible;
+		}
+	</style>
+</head>
+
+<body background style="margin:0px">
+	<script src="threejs/three.js-master/build/three.js"> </script>
+	<script src="threejs/three.js-master/examples/js/controls/TrackballControls.js"></script>
+
+	<div id="container"></div>
+
+	<script>
+		let scene, camera, renderer, controls;
+
+		function InitScene() {
+			scene = new THREE.Scene();
+		}
+
+
+		function InitCamera() {
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 40000);
+		}
+
+
+		function InitRenderer() {
+			renderer = new THREE.WebGLRenderer({
+				antialias: true,
+				alpha: true,
+				precision: 'highp',
+			});
+			renderer.setClearColor(0xf1f1f1);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.getElementById('container').appendChild(renderer.domElement);
+		}
+
+		let ambientLight;
+		// let directionalLight;
+		function InitLight() {
+			ambientLight = new THREE.AmbientLight(0xfffff, 1);
+			scene.add(ambientLight);
+		}
+
+
+		function LoadModel() {
+
+			var loader = new THREE.ObjectLoader();
+			loader.load("wall.json", function (obj) {
+				scene.add(obj);
+				var boundingbox = new THREE.Box3();
+				boundingbox.expandByObject(obj);
+				var center = boundingbox.getCenter();
+				camera.position.set(center.x, center.y, center.z + 30000);
+			});
+		}
+
+		function InitControls() {
+
+			controls = new THREE.TrackballControls(camera, renderer.domElement);
+		}
+
+
+		function onWindowResize() {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+		}
+
+		function animate() {
+			requestAnimationFrame(animate);
+			renderer.render(scene, camera);
+			controls.update();
+		};
+
+		function Init() {
+
+			InitScene();
+			InitCamera();
+			InitRenderer();
+			InitLight();
+			InitControls();
+			LoadModel();
+
+			window.addEventListener('resize', onWindowResize, false);
+		}
+
+		(function () {
+			Init();
+			animate();
+		})();
+
+	</script>
+</body>
+
+</html>
