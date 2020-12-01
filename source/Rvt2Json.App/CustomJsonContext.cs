@@ -132,8 +132,9 @@ namespace Rvt2Json.App
             }
             else
             {
-                if (elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Cameras ||
-                    elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Lines)
+                if (elem.Category != null  && 
+                   (elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Cameras ||
+                    elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Lines))
                 {
                     return RenderNodeAction.Skip;
                 }
@@ -365,7 +366,15 @@ namespace Rvt2Json.App
                     return;
                 }
             }
-
+            else
+            {
+                if (elem.Category != null && 
+                   (elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Cameras ||
+                    elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Lines))
+                {
+                    return;
+                }
+            }
             var children = new List<ObjectModel>();
             foreach (var elem_per_material in XYZs.Keys)
             {
