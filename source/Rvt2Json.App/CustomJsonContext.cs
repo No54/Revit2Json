@@ -463,6 +463,7 @@ namespace Rvt2Json.App
         public void OnInstanceEnd(InstanceNode node)
         {
             Debug.WriteLine($"OnInstanceEnd:{node.NodeName}");
+            tfStack.Pop();
         }
 
         /// <summary>
