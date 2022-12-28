@@ -54,7 +54,7 @@
 		function LoadModel() {
 
 			var loader = new THREE.ObjectLoader();
-			loader.load("wall.json", function (obj) {
+			loader.load("house.json", function (obj) {
 				scene.add(obj);
 				var boundingbox = new THREE.Box3();
 				boundingbox.expandByObject(obj);
@@ -97,7 +97,7 @@
 			Init();
 			animate();
 		})();
-
+		
 	</script>
 </body>
 
