@@ -10,29 +10,17 @@ namespace Rvt2Json.App.Models
         public long Z { get; set; }
 
         /// <summary>
-<<<<<<< HEAD
-        /// 小于此值，则考虑为0 
-=======
         /// 小于此值则认定为0
->>>>>>> 7af489758159fe4dba4a203b672fe492fe3e2f66
         /// </summary>
         const double _eps = 1.0e-9;
 
         /// <summary>
-<<<<<<< HEAD
-        /// 英尺转为毫米的转换系数
-=======
         /// 英尺到毫米的转化系数
->>>>>>> 7af489758159fe4dba4a203b672fe492fe3e2f66
         /// </summary>
         const double _feet_to_mm = 25.4 * 12;
 
         /// <summary>
-<<<<<<< HEAD
-        /// 将一个给定的英尺转为毫米 
-=======
         /// 将给定的长度值从英尺转换为毫米。
->>>>>>> 7af489758159fe4dba4a203b672fe492fe3e2f66
         /// </summary>
         static long ConvertFeetToMillimetres(double d)
         {
