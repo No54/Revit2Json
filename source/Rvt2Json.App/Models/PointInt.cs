@@ -10,19 +10,17 @@ namespace Rvt2Json.App.Models
         public long Z { get; set; }
 
         /// <summary>
-        /// Consider a Revit length zero 
-        /// if is smaller than this.
+        /// 小于此值，则考虑为0 
         /// </summary>
         const double _eps = 1.0e-9;
 
         /// <summary>
-        /// Conversion factor from feet to millimetres.
+        /// 英尺转为毫米的转换系数
         /// </summary>
         const double _feet_to_mm = 25.4 * 12;
 
         /// <summary>
-        /// Conversion a given length value 
-        /// from feet to millimetre.
+        /// 将一个给定的英尺转为毫米 
         /// </summary>
         static long ConvertFeetToMillimetres(double d)
         {
@@ -42,6 +40,11 @@ namespace Rvt2Json.App.Models
             }
         }
 
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="switch_coordinates">是否转换坐标，YZ交换，X取逆</param>
         public PointInt(XYZ p, bool switch_coordinates)
         {
             X = ConvertFeetToMillimetres(p.X);
